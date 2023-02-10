@@ -23,6 +23,8 @@ class ImageModel:
                 ),
             ]
         )
+        num_of_gpus = torch.cuda.device_count()
+        print(num_of_gpus)
 
     async def __call__(self, starlette_request):
         image_payload_bytes = await starlette_request.body()
