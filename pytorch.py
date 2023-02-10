@@ -39,3 +39,5 @@ class ImageModel:
             output_tensor = self.model(input_tensor)
         print("[3/3] Inference done!")
         return {"class_index": int(torch.argmax(output_tensor[0]))}
+    
+ptmodel = ImageModel.bind()
