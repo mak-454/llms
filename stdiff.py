@@ -16,11 +16,12 @@ class PyTorchModel:
         num_of_gpus = torch.cuda.device_count()
         print(num_of_gpus)
         
-        scheduler = EulerDiscreteScheduler.from_pretrained(model_id, subfolder="scheduler")
-        self.pipe = StableDiffusionPipeline.from_pretrained(model_id, scheduler=scheduler, torch_dtype=torch.float16)
-        self.pipe = self.pipe.to("cuda")
 
     async def __call__(self, starlette_request):
+      scheduler = EulerDiscreteScheduler.from_pretrained(model_id, subfolder="scheduler")
+      self.pipe = StableDiffusionPipeline.from_pretrained(model_id, scheduler=scheduler, torch_dtype=torch.float16)
+      self.pipe = self.pipe.to("cuda")
+        
       request = await starlette_request.body()
       prompt = request["prompt"]
       
