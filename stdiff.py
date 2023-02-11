@@ -29,3 +29,4 @@ class PyTorchModel:
       data = asarray(image)
       image.save("result.png")
       return {"result": data.tolist()}
+stdiffmodel = PyTorchModel.bind()
