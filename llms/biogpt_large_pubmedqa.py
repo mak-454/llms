@@ -7,7 +7,7 @@ import json
 from ray import serve
 
 #@serve.deployment(route_prefix="/biogpt-large-pubmedqa", ray_actor_options={"num_gpus": 1})
-@serve.deployment(ray_actor_options={"num_gpus": 1})
+@serve.deployment(ray_actor_options={"num_gpus": 1}, health_check_timeout_s=600)
 class BioGPTLargePubmedQA:
     def __init__(self):
         #pipe_biogpt = pipeline("text-generation", model="microsoft/BioGPT-Large-PubMedQA", device="cuda:0")
@@ -18,13 +18,13 @@ class BioGPTLargePubmedQA:
 
     async def __call__(self, starlette_request):
         request = await starlette_request.body()
-        text = json.loads(request)
-        print(text)
-        output_biogpt = self.pipe_biogpt(text, max_length=100)
+        data = json.loads(request)
+        prompt = data['prompt']
+        max_length = data['max_length']
+        output_biogpt = self.pipe_biogpt(prompt, max_length=max_length)
         output_biogpt = output_biogpt[0][0]["generated_text"]
         result = output_biogpt.split(' ')[-1]
-        print(result)
-        return {"result": result}
+        return result
 
 ''' Examples which work
         examples = [['question: Should chest wall irradiation be included after mastectomy and negative node breast cancer? context: This study aims to evaluate local failure patterns in node negative breast cancer patients treated with post-mastectomy radiotherapy including internal mammary chain only. Retrospective analysis of 92 internal or central-breast node-negative tumours with mastectomy and external irradiation of the internal mammary chain at the dose of 50 Gy, from 1994 to 1998. Local recurrence rate was 5 % (five cases). Recurrence sites were the operative scare and chest wall. Factors associated with increased risk of local failure were age<or = 40 years and tumour size greater than 20mm, without statistical significance. answer: Post-mastectomy radiotherapy should be discussed for a sub-group of node-negative patients with predictors factors of local failure such as age<or = 40 years and larger tumour size. target: the answer to the question given the context is'],

@@ -5,11 +5,11 @@ import requests
 import json
 
 PRELOADED_LLM_MODELS = {
+    "GPTJ6B": "EleutherAI/gpt-j-6B",
+    "GPTJT6B": "togethercomputer/GPT-JT-6B-v1",
     "BioGPT": "microsoft/biogpt",
     "BioGPT-Large": "microsoft/BioGPT-Large",
     "BioGPT-Large-PubMedQA": "microsoft/BioGPT-Large-PubMedQA",
-    "GPTJT6B": "togethercomputer/GPT-JT-6B-v1",
-    "GPT-J-6B": "EleutherAI/gpt-j-6B",
     "BLOOM": "bigscience/bloom",
     "GPT-NEO": "EleutherAI/gpt-neo-2.7B",
 }
@@ -21,10 +21,28 @@ MODELS_PREFIX = {
         "BioGPT-Large": "/biogpt-large",
         "BioGPT-Large-PubMedQA": "/biogpt-large-pubmedqa",
         "GPTJT6B": "/gptjt6b",
-        "GPT-J-6B": "/gpt6jb",
+        "GPTJ6B": "/gptj6b",
         "BLOOM": "/bloom",
         "GPT-NEO": "/gpt-neo",
 }
+
+biogpt_pubmeqa = '["question: Should chest wall irradiation be included after mastectomy and negative node breast cancer? context: This study aims to evaluate local failure patterns in node negative breast cancer patients treated with post-mastectomy radiotherapy including internal mammary chain only. Retrospective analysis of 92 internal or central-breast node-negative tumours with mastectomy and external irradiation of the internal mammary chain at the dose of 50 Gy, from 1994 to 1998. Local recurrence rate was 5 % (five cases). Recurrence sites were the operative scare and chest wall. Factors associated with increased risk of local failure were age<or = 40 years and tumour size greater than 20mm, without statistical significance. answer: Post-mastectomy radiotherapy should be discussed for a sub-group of node-negative patients with predictors factors of local failure such as age<or = 40 years and larger tumour size. target: the answer to the question given the context is"]'
+
+gptjt6b = "In a shocking finding, scientists discovered a herd of unicorns living in a remote,  previously unexplored valley, in the Andes Mountains. Even more surprising to the  researchers was the fact that the unicorns spoke perfect English."
+
+gptj6b = "Zoe Kwan is a 20-year old singer and songwriter who has taken Hong Kong’s music scene by storm."
+
+biogpt = "A 65-year-old female patient with a past medical history of"
+
+DEFAULT_TEXTS = {
+        "BioGPT": biogpt,
+        "BioGPT-Large": biogpt,
+        "BioGPT-Large-PubMedQA": biogpt_pubmeqa,
+        "GPTJT6B": gptjt6b,
+        "GPTJ6B": gptj6b,
+        "BLOOM": "",
+        "GPT-NEO": ""
+        }
 
 
 def check_password():
@@ -74,11 +92,18 @@ def change_selection():
     except Exception as exc:
             st.error(f"LLM {choice} is not deployed or UNHEALTHY, contact adminstrator")
 
-def post_question(settings, prompt):
+
+def send_prompt(settings, prompt):
     llm = settings['model']
+    max_length = settings.get('answer_length', 1)
+    temperature = settings.get('temperature', 0.0)
     prefix = MODELS_PREFIX[llm]
     url = DEPLOYMENT_ENDPOINT + prefix
-    resp = requests.post(url, json=prompt)
+    if llm == "BioGPT-Large-PubMedQA":
+        prompt = json.loads(prompt)
+        #st.write(prompt)
+    data = {"prompt": prompt, "max_length": max_length, "temperature": temperature}
+    resp = requests.post(url, json=data)
     if resp.status_code == 200:
         answer = json.loads(resp.content)
     else:
@@ -97,20 +122,47 @@ if check_password():
             key="choice",
             help="Select the LLM model to test.",
             )
-    st.title("LLM Tester")
-    st.caption("Input your prompt ..")
+        sidebar["answer_length"] = st.slider(
+                "Answer Length",
+                min_value = 1,
+                max_value = 200,
+                value=100,
+                )
+        if sidebar["model"] == "GPTJT6B" or sidebar["model"] == "GPTJ6B":
+            sidebar["temperature"] = st.slider(
+                    "Temperature",
+                    min_value= 0.1,
+                    max_value = 1.0,
+                    value = 0.7
+                    )
+        else:
+            sidebar["num_sequences"] = st.slider(
+                    "Num of sequences",
+                    min_value= 1,
+                    max_value = 10,
+                    value = 1
+                    )
 
-    default_prompt = "COVID19 is ..."
+
+    st.title("LLM Tester")
+    st.caption("Tool to test LLMs deployed on an internal cluster")
+    #st.caption("Input your prompt ..")
+
+    
+    default_prompt = DEFAULT_TEXTS[sidebar["model"]]
     prompt = st.text_area(
-        label="Input your prompt",
+        label="Input your prompt ..",
         value=default_prompt,
+        height=200,
         )
 
-    if st.button("Submit", disabled=st.session_state.get("disabled", False), on_click=post_question, args=(sidebar,prompt)):
+    st.session_state['prompt_ta'] = prompt
+    if st.button("Submit", disabled=st.session_state.get("disabled", False), on_click=send_prompt, args=(sidebar,prompt)):
         answer = st.text_area(
             label="Answer from LLM",
             value=st.session_state["answer"],
             max_chars=10000,
+            height=300,
             )
         #st.write(answer)
 
