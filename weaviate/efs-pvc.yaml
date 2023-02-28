@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: weaviate-data-weaviate-0
+  namespace: weaviate
+spec:
+  accessModes:
+  - ReadWriteMany
+  resources:
+    requests:
+      storage: 50Gi
+  storageClassName: ""
+  volumeMode: Filesystem
+  volumeName: weaviate-pv
