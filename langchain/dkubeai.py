@@ -23,7 +23,7 @@ class HuggingFaceHub(LLM, BaseModel):
         .. code-block:: python
 
             from langchain.llms.dkubeapi import HuggingFaceHub
-            hf = HuggingFaceHub(repo_id="gpt2", dkubeai_ep="http://127.0.0.1:80000", dkubeai_api_token="my-api-key")
+            hf = HuggingFaceHub(repo_id="EleutherAI/gpt-j-6B", dkubeai_ep="http://127.0.0.1:80000", dkubeai_api_token="invincible")
     """
 
     client: Any  #: :meta private:
