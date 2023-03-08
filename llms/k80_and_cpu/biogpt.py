@@ -17,7 +17,7 @@ class BioGpt:
         request = await starlette_request.body()
         data = json.loads(request)
         prompt = data['prompt']
-        max_length = data['max_length']
+        max_length = data.get('max_length', 100)
         num_return_sequences = data.get("num_sequences", 5)
         output_biogpt = self.pipe_biogpt(prompt, max_length=max_length, num_return_sequences=num_return_sequences, do_sample=True)
         result = output_biogpt[0]["generated_text"]

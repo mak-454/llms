@@ -39,8 +39,8 @@ class GptJ6B:
         data = json.loads(request)
 
         prompt = data['prompt']
-        max_length = data['max_length']
-        temperature = data['temperature']
+        max_length = data.get('max_length',100)
+        temperature = data.get('temperature', 0.8)
          
         inputs = self.tokenizer(prompt, return_tensors="pt")
         input_ids = inputs["input_ids"].to("cuda")

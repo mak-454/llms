@@ -20,7 +20,7 @@ class BioGPTLargePubmedQA:
         request = await starlette_request.body()
         data = json.loads(request)
         prompt = data['prompt']
-        max_length = data['max_length']
+        max_length = data.get('max_length',100)
         output_biogpt = self.pipe_biogpt(prompt, max_length=max_length)
         output_biogpt = output_biogpt[0][0]["generated_text"]
         result = output_biogpt.split(' ')[-1]
