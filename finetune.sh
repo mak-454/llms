@@ -9,7 +9,7 @@ pushd dreambooth || true
 # Step 0 cont
 # __preparation_start__
 # TODO: If running on multiple nodes, change this path to a shared directory (ex: NFS)
-export DATA_PREFIX="/home/default/mak/sdiff_artifacts"
+export DATA_PREFIX="$HOME/sdiff_finetuning/artifacts"
 export ORIG_MODEL_NAME="CompVis/stable-diffusion-v1-4"
 export ORIG_MODEL_HASH="b95be7d6f134c3a9e62ee616f310733567f069ce"
 export ORIG_MODEL_DIR="$DATA_PREFIX/model-orig"
@@ -37,7 +37,6 @@ use_lora=true
 python download_model.py --model_dir=$ORIG_MODEL_DIR --model_name=$ORIG_MODEL_NAME --revision=$ORIG_MODEL_HASH
 
 
-
 # Generate more samples data
 submissionid=`echo $RANDOM | md5sum | head -c 20; echo;`
 echo "Generating more samples data - $submissionid"
@@ -47,7 +46,6 @@ d3x ray job submit --submission-id $submissionid --working-dir $PWD -- python ge
 --prompts="photo of a $CLASS_NAME" \
 --num_samples_per_prompt=200 \
 --use_ray_data
-
 
 submissionid=`echo $RANDOM | md5sum | head -c 20; echo;`
 echo "Start LoRA finetuning job - $submissionid"
@@ -60,9 +58,9 @@ d3x ray job submit --submission-id $submissionid --working-dir $PWD -- python tr
   --instance_prompt="photo of $UNIQUE_TOKEN $CLASS_NAME" \
   --class_images_dir=$IMAGES_REG_DIR \
   --class_prompt="photo of a $CLASS_NAME" \
-  --train_batch_size=2 \
+  --train_batch_size=1 \
   --lr=1e-4 \
-  --num_epochs=4 \
+  --num_epochs=1 \
   --max_train_steps=200 \
   --num_workers $NUM_WORKERS
 
@@ -81,6 +79,5 @@ d3x ray job submit --submission-id $submissionid --working-dir $PWD -- python ge
 # Save artifact
 mkdir -p $IMAGES_RESULT_DIR/artifacts
 cp -f "$IMAGES_NEW_DIR"/0-*.jpg $IMAGES_RESULT_DIR/artifacts/example_out.jpg
-
 # Exit
 popd || true

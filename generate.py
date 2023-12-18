@@ -49,7 +49,7 @@ def run(args):
             )
 
         prompt_ds = ray.data.from_items(prompts_with_idxs)
-        num_workers = 4
+        num_workers = 1
 
         # Run the batch inference by consuming output with `take_all`.
         prompt_ds.map_batches(
