@@ -4,6 +4,7 @@ from langchain.document_loaders import PyPDFLoader
 from langchain.embeddings import HuggingFaceEmbeddings
 from langchain.embeddings.sentence_transformer import SentenceTransformerEmbeddings
 from langchain.memory import ConversationBufferMemory
+from langchain.memory import ConversationBufferWindowMemory
 from langchain.prompts import ChatPromptTemplate, SystemMessagePromptTemplate, MessagesPlaceholder, \
     HumanMessagePromptTemplate
 from langchain.text_splitter import RecursiveCharacterTextSplitter
@@ -50,7 +51,8 @@ if __name__ == '__main__':
     )
 
 
-    chat_memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True, output_key="answer")
+    chat_memory = ConversationBufferWindowMemory(memory_key="chat_history", return_messages=True, output_key="answer", k=3)
+    #chat_memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True, output_key="answer")
     prompt = ChatPromptTemplate.from_messages([
         SystemMessagePromptTemplate.from_template(system_template),
         MessagesPlaceholder(variable_name="chat_history"),
